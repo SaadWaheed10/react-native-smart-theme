@@ -16,6 +16,7 @@ import {
   ThemedSwitch,
   ThemedText,
   ThemedView,
+  createCustomTheme,
   createMaterialYouTheme,
   createTheme,
   createThemeFromColors,
@@ -26,7 +27,7 @@ import {
 
 const SEEDS = ['#6750A4', '#006A6A', '#B3261E', '#E65100'] as const;
 
-type Engine = 'classic' | 'material' | 'image';
+type Engine = 'classic' | 'material' | 'image' | 'custom';
 
 function buildTheme(seed: string, engine: Engine) {
   if (engine === 'material') {
@@ -37,6 +38,24 @@ function buildTheme(seed: string, engine: Engine) {
       colors: [seed, '#E8DEF8', '#21005D', '#FFB4AB'],
       name: 'demo-image',
     }).theme;
+  }
+  if (engine === 'custom') {
+    return createCustomTheme({
+      primary: seed,
+      name: 'demo-custom',
+      light: {
+        background: '#FFF8F0',
+        surface: '#FFFFFF',
+        text: '#1A1A1A',
+        primary: seed,
+      },
+      dark: {
+        background: '#0D0D12',
+        surface: '#1C1B1F',
+        text: '#F5F5F7',
+        primary: seed,
+      },
+    });
   }
   return createTheme({ primary: seed, name: 'demo-classic' });
 }
@@ -132,9 +151,8 @@ function Demo({
             </View>
             <ThemedDivider style={{ marginVertical: 12 }} />
             <SmartText>
-              Tap Toggle — you will be asked whether to apply smart contrast
-              overall, or only switch the theme (for apps that already
-              hand-tuned light/dark).
+              Tap Toggle — a dialog asks: Apply overall (UI + text contrast) or
+              Theme only (UI palette; keeps your custom text colors).
             </SmartText>
             <ThemedText variant="muted" style={{ marginTop: 8 }}>
               Surface / border / text tokens follow the active mode and a11y
@@ -179,15 +197,17 @@ function Demo({
           <ThemedCard>
             <ThemedText style={styles.section}>Generator</ThemedText>
             <View style={styles.rowWrap}>
-              {(['classic', 'material', 'image'] as Engine[]).map((e) => (
-                <ThemedButton
-                  key={e}
-                  title={e}
-                  variant={engine === e ? 'secondary' : 'ghost'}
-                  onPress={() => onEngine(e)}
-                  style={styles.chip}
-                />
-              ))}
+              {(['classic', 'material', 'image', 'custom'] as Engine[]).map(
+                (e) => (
+                  <ThemedButton
+                    key={e}
+                    title={e}
+                    variant={engine === e ? 'secondary' : 'ghost'}
+                    onPress={() => onEngine(e)}
+                    style={styles.chip}
+                  />
+                )
+              )}
             </View>
           </ThemedCard>
 

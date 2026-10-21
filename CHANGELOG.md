@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] — 2026-10-21
 
 ### Added
+- `createCustomTheme` — enter your own light & dark colors (gaps auto-filled)
+- `setPalette` / `updateThemeColors` — change light/dark colors at runtime
+- Built-in `SmartAdaptDialog` — clear hints: overall = UI + text; theme only = UI palette
 - One-seed `createTheme` generator with WCAG AA light + dark palettes
+
 - `ThemeProvider` + `useTheme` — light / dark / system, force mode, persistence
 - Storage adapters: MMKV, AsyncStorage, in-memory fallback (optional peers; no crash if missing)
 - WCAG + APCA contrast utilities, `getAdaptiveColor`, live `contrastWarning`

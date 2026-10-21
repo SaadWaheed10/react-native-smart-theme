@@ -158,7 +158,8 @@ Also: `theme.seed`, `theme.metrics.spacing`, `theme.metrics.radius`.
 | `smartAdaptDefault` | `false` | Initial overall flag when using `'ask'` |
 | `persistSmartAdapt` | `true` | Remember overall vs theme-only |
 | `smartAdaptMinContrast` | `4.5` | WCAG ratio when overall is on |
-| `onSmartAdaptAsk` | system Alert | Custom prompt |
+| `onSmartAdaptAsk` | built-in dialog | Custom prompt (skips dialog) |
+| `smartAdaptDialog` | `true` | In-app dialog with overall vs theme-only hints |
 
 ### `useTheme()` returns
 
@@ -180,6 +181,8 @@ Also: `theme.seed`, `theme.metrics.spacing`, `theme.metrics.radius`.
 | `isHydrated` | Persistence finished loading |
 | `metrics` | Spacing + radius |
 | `exportTheme()` / `importTheme(...)` | JSON round-trip (import never throws) |
+| `setPalette(mode, colors)` | Patch light or dark tokens at runtime |
+| `updateThemeColors({ light?, dark? })` | Patch both palettes |
 | `reduceMotion` / `animateTransitions` / `transitionDuration` | Motion |
 
 **Tips**
@@ -198,10 +201,17 @@ Some apps already hand-tune light/dark. Others don’t. Smart adapt is **opt-in*
 |--------------|----------|
 | `false` (**default**) | Theme palette only — your styles stay as authored |
 | `true` | Always repair contrast on theme tokens |
-| `'ask'` | On each `setMode` / `toggleMode`, ask the user |
+| `'ask'` | On each `setMode` / `toggleMode`, show the built-in dialog |
 
-**“Apply overall”** repairs **theme tokens** (text, on-primary, borders, …).  
-**It does not** rewrite hardcoded `#fff` in your components — use `SmartText`, `colors.*`, or `adaptStyleColors` for those.
+When `smartAdapt="ask"`, users see a custom in-app dialog (not a bare system alert):
+
+| Choice | Meaning |
+|--------|---------|
+| **Apply overall** | UI colors **+ text / icon contrast** — keeps content readable if you did not hand-tune dark/light |
+| **Theme only** | **UI palette only** (surfaces, buttons, accents) — leaves your custom text colors as coded |
+| **Cancel** | Do not change mode |
+
+Override with `onSmartAdaptAsk`, or set `smartAdaptDialog={false}` for a system Alert.
 
 ```tsx
 <ThemeProvider theme={theme} smartAdapt="ask">
@@ -306,6 +316,45 @@ const theme = createTheme({
   name: 'brand',
 });
 // theme.light + theme.dark
+```
+
+### Your own light & dark colors
+
+Enter only the colors you care about — missing tokens are filled from the seed:
+
+```ts
+import { createCustomTheme } from 'react-native-smart-theme';
+
+const theme = createCustomTheme({
+  primary: '#6750A4',
+  light: {
+    background: '#FFF8F0',
+    text: '#1A1A1A',
+    primary: '#7C3AED',
+    surface: '#FFFFFF',
+  },
+  dark: {
+    background: '#0D0D12',
+    text: '#F5F5F7',
+    primary: '#C4B5FD',
+    surface: '#1C1B1F',
+  },
+});
+```
+
+Update at runtime:
+
+```ts
+const { setPalette, updateThemeColors } = useTheme();
+
+setPalette('light', { primary: '#E91E63', background: '#FFF5F7' });
+setPalette('dark', { primary: '#F48FB1', background: '#1A0A10' });
+
+// or both:
+updateThemeColors({
+  light: { secondary: '#0D9488' },
+  dark: { secondary: '#5EEAD4' },
+});
 ```
 
 ### Image → theme

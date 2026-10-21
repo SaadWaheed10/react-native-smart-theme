@@ -24,3 +24,6 @@ export type { ThemedDividerProps } from './ThemedDivider';
 
 export { SmartText } from './SmartText';
 export type { SmartTextProps } from './SmartText';
+
+export { SmartAdaptDialog } from './SmartAdaptDialog';
+export type { SmartAdaptDialogProps } from './SmartAdaptDialog';

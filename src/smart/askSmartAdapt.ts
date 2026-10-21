@@ -2,8 +2,8 @@ import { Alert } from 'react-native';
 import type { SmartAdaptChoice } from '../types/theme';
 
 /**
- * Default system dialog when `smartAdapt="ask"`.
- * Apps can replace this via `onSmartAdaptAsk` for custom UI / copy.
+ * System Alert fallback when `smartAdaptDialog={false}`.
+ * Prefer the built-in SmartAdaptDialog for clearer hints.
  */
 export function askSmartAdaptDefault(): Promise<SmartAdaptChoice> {
   return new Promise((resolve) => {
@@ -16,7 +16,7 @@ export function askSmartAdaptDefault(): Promise<SmartAdaptChoice> {
 
     Alert.alert(
       'Switch appearance',
-      'Theme only — use your theme colors as designed.\n\nApply overall — also fix text/border contrast so content stays readable.',
+      'Apply overall — UI colors + text/icon contrast (keeps content readable).\n\nTheme only — UI palette only; leaves your custom text colors as coded.',
       [
         {
           text: 'Cancel',

@@ -12,6 +12,12 @@ export {
 } from './generators/createTheme';
 
 export {
+  createCustomTheme,
+  patchThemePalettes,
+} from './generators/createCustomTheme';
+export type { CreateCustomThemeOptions } from './generators/createCustomTheme';
+
+export {
   extractDominantColors,
   pickVibrantSeed,
 } from './generators/extractColors';
@@ -95,6 +101,7 @@ export type {
 export {
   AdaptiveText,
   SmartText,
+  SmartAdaptDialog,
   ThemedView,
   ThemedText,
   ThemedButton,
@@ -106,6 +113,7 @@ export {
 export type {
   AdaptiveTextProps,
   SmartTextProps,
+  SmartAdaptDialogProps,
   ThemedViewProps,
   ThemedTextProps,
   ThemedTextVariant,

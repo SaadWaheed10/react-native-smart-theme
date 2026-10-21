@@ -218,11 +218,18 @@ export interface ThemeProviderProps {
   /**
    * Custom prompt when policy / call uses `'ask'`.
    * Return `'overall' | 'theme-only' | 'cancel'`.
-   * Defaults to a system Alert.
+   * When omitted, the built-in SmartAdaptDialog is shown.
    */
   onSmartAdaptAsk?: () =>
     | SmartAdaptChoice
     | Promise<SmartAdaptChoice>;
+  /**
+   * Use the in-app SmartAdaptDialog (recommended).
+   * Set `false` to fall back to a system Alert.
+   * Ignored when `onSmartAdaptAsk` is provided.
+   * @default true
+   */
+  smartAdaptDialog?: boolean;
   children: React.ReactNode;
 }
 
@@ -282,4 +289,17 @@ export interface ThemeContextValue {
    * Invalid JSON / payload is ignored (warns in __DEV__) — never throws.
    */
   importTheme: (jsonOrTheme: string | Theme) => void;
+  /**
+   * Patch colors for light and/or dark at runtime.
+   * Example: `setPalette('dark', { primary: '#C4B5FD', background: '#0D0D12' })`
+   */
+  setPalette: (
+    mode: ResolvedMode,
+    colors: Partial<ColorTokens>
+  ) => void;
+  /** Patch both palettes in one call */
+  updateThemeColors: (patch: {
+    light?: Partial<ColorTokens>;
+    dark?: Partial<ColorTokens>;
+  }) => void;
 }

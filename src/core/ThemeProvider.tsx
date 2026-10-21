@@ -12,11 +12,14 @@ import {
   useReduceMotion,
   withColorBlindSafe,
 } from '../accessibility';
+import { SmartAdaptDialog } from '../components/SmartAdaptDialog';
+import { patchThemePalettes } from '../generators/createCustomTheme';
 import { ensureAccessiblePalette } from '../smart/adaptPalette';
 import { askSmartAdaptDefault } from '../smart/askSmartAdapt';
 import { createDefaultStorage } from '../storage/createStorage';
 import type {
   ColorBlindVariant,
+  ColorTokens,
   ModeChangeOptions,
   ResolvedMode,
   SmartAdaptChoice,
@@ -64,6 +67,7 @@ export function ThemeProvider({
   persistSmartAdapt = true,
   smartAdaptMinContrast = 4.5,
   onSmartAdaptAsk,
+  smartAdaptDialog = true,
   children,
 }: ThemeProviderProps) {
   const systemScheme = useColorScheme();
@@ -83,10 +87,14 @@ export function ThemeProvider({
     smartAdaptPolicy === true ? true : smartAdaptDefault
   );
   const [isHydrated, setIsHydrated] = useState(!persist);
+  const [askVisible, setAskVisible] = useState(false);
 
   const hydrated = useRef(!persist);
   const userTouchedMode = useRef(false);
   const askInFlight = useRef(false);
+  const askResolver = useRef<((choice: SmartAdaptChoice) => void) | null>(
+    null
+  );
 
   useEffect(() => {
     setTheme(themeProp);
@@ -219,9 +227,19 @@ export function ThemeProvider({
     if (askInFlight.current) return 'cancel';
     askInFlight.current = true;
     try {
-      const result = onSmartAdaptAsk
-        ? await Promise.resolve(onSmartAdaptAsk())
-        : await askSmartAdaptDefault();
+      let result: SmartAdaptChoice;
+
+      if (onSmartAdaptAsk) {
+        result = await Promise.resolve(onSmartAdaptAsk());
+      } else if (smartAdaptDialog) {
+        result = await new Promise<SmartAdaptChoice>((resolve) => {
+          askResolver.current = resolve;
+          setAskVisible(true);
+        });
+      } else {
+        result = await askSmartAdaptDefault();
+      }
+
       if (
         result === 'overall' ||
         result === 'theme-only' ||
@@ -235,7 +253,14 @@ export function ThemeProvider({
     } finally {
       askInFlight.current = false;
     }
-  }, [onSmartAdaptAsk]);
+  }, [onSmartAdaptAsk, smartAdaptDialog]);
+
+  const handleAskChoose = useCallback((choice: SmartAdaptChoice) => {
+    setAskVisible(false);
+    const resolve = askResolver.current;
+    askResolver.current = null;
+    resolve?.(choice);
+  }, []);
 
   const resolveSmartAdaptForChange = useCallback(
     async (options?: ModeChangeOptions): Promise<boolean | null> => {
@@ -331,6 +356,24 @@ export function ThemeProvider({
     }
   }, []);
 
+  const setPalette = useCallback(
+    (paletteMode: ResolvedMode, partial: Partial<ColorTokens>) => {
+      setTheme((prev) =>
+        patchThemePalettes(prev, {
+          [paletteMode]: partial,
+        })
+      );
+    },
+    []
+  );
+
+  const updateThemeColors = useCallback(
+    (patch: { light?: Partial<ColorTokens>; dark?: Partial<ColorTokens> }) => {
+      setTheme((prev) => patchThemePalettes(prev, patch));
+    },
+    []
+  );
+
   const value = useMemo(
     () => ({
       theme: activeTheme,
@@ -355,6 +398,8 @@ export function ThemeProvider({
       isHydrated,
       exportTheme: exportThemeFn,
       importTheme: importThemeFn,
+      setPalette,
+      updateThemeColors,
     }),
     [
       activeTheme,
@@ -375,6 +420,8 @@ export function ThemeProvider({
       isHydrated,
       exportThemeFn,
       importThemeFn,
+      setPalette,
+      updateThemeColors,
     ]
   );
 
@@ -385,6 +432,9 @@ export function ThemeProvider({
       ) : (
         children
       )}
+      {!onSmartAdaptAsk && smartAdaptDialog ? (
+        <SmartAdaptDialog visible={askVisible} onChoose={handleAskChoose} />
+      ) : null}
     </ThemeContext.Provider>
   );
 }
