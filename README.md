@@ -1,10 +1,10 @@
 # react-native-smart-theme
 
-**Give your React Native app a complete light & dark theme from a single brand color — and keep every screen readable when users switch.**
+**A dark / light mode theme engine for React Native & Expo** — switch appearance (light, dark, or follow system), generate a full palette from one brand color, and keep every screen readable when the mode changes.
 
-Drop in one seed (or pull colors from an image). Get accessible palettes, themed components, and StyleSheets that update instantly on light ↔ dark. Optional smart contrast can ask whether to repair readability overall or leave your hand-tuned styles alone. Works on **Expo** and **React Native CLI**, with **zero required native peers**.
+Drop in one seed (or pull colors from an image). Get accessible light + dark palettes, themed components, and StyleSheets that update the moment users toggle mode. Optional smart contrast can ask whether to repair readability overall or leave your hand-tuned dark/light styles alone. Works on **Expo** and **React Native CLI**, with **zero required native peers**.
 
-> One seed in → full theme out. Toggle mode → text stays visible. Your design system, without the pain.
+> Dark ↔ light mode switcher + one-seed theme generator. Toggle appearance → UI stays clear. Your design system, without the pain.
 
 One-seed palettes · Image → theme · Material You · Themed styles · Adaptive text (WCAG + APCA) · Optional smart contrast · Accessibility
 
