@@ -1,7 +1,7 @@
 {
   "name": "react-native-smart-theme",
   "version": "0.1.0",
-  "description": "Advanced dark/light theming for React Native & Expo — one-seed palettes, image→theme, Material You, adaptive text, WCAG/APCA, animated transitions",
+  "description": "Advanced dark/light theming for React Native & Expo — one-seed palettes, image→theme, Material You, themed styles, adaptive text, WCAG/APCA, animated transitions",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
   "types": "lib/typescript/index.d.ts",
@@ -40,7 +40,9 @@
     "adaptive",
     "palette",
     "material-you",
-    "image-theme"
+    "image-theme",
+    "stylesheet",
+    "themed-styles"
   ],
   "repository": {
     "type": "git",
@@ -50,7 +52,10 @@
     "url": "https://github.com/SaadWaheed10/react-native-smart-theme/issues"
   },
   "homepage": "https://github.com/SaadWaheed10/react-native-smart-theme#readme",
-  "author": "Saad Waheed",
+  "author": {
+    "name": "Saad Waheed",
+    "url": "https://github.com/SaadWaheed10"
+  },
   "license": "MIT",
   "peerDependencies": {
     "react": "*",

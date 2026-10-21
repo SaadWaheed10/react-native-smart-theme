@@ -67,6 +67,14 @@ export { useImageTheme } from './hooks/useImageTheme';
 export type { UseImageThemeResult } from './hooks/useImageTheme';
 export { useSmartColor } from './hooks/useSmartColor';
 export type { UseSmartColorOptions } from './hooks/useSmartColor';
+export {
+  createThemedStyles,
+  useThemedStyles,
+} from './hooks/useThemedStyles';
+export type {
+  ThemedStyleFactory,
+  ThemedStyleContext,
+} from './hooks/useThemedStyles';
 
 // Smart adapt (auto contrast — no AI)
 export {

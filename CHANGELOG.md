@@ -17,9 +17,10 @@ All notable changes to this project will be documented in this file.
 - Themed primitives: View, Text, Button, Card, Input, Switch, Divider
 - `smartAdapt` policy: `false` (default) \| `true` \| `'ask'` (overall vs theme-only prompt)
 - `SmartText`, `useSmartColor`, `ensureAccessiblePalette`, `scanPaletteContrast`, `adaptStyleColors`
+- `createThemedStyles` / `useThemedStyles` — StyleSheets from theme tokens
 - Theme export / import as JSON
 - Expo example app
-- Unit tests for contrast, theme generation, and smart adapt
+- Unit tests for contrast, theme generation, smart adapt, and themed styles
 
 ### Safety
 - Optional peers loaded dynamically (Metro-safe) — missing packages do not break the bundle

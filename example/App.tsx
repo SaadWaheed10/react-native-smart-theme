@@ -1,10 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import {
   AdaptiveText,
@@ -20,6 +15,7 @@ import {
   createMaterialYouTheme,
   createTheme,
   createThemeFromColors,
+  createThemedStyles,
   type ColorBlindVariant,
   useTheme,
 } from 'react-native-smart-theme';
@@ -86,6 +82,7 @@ function Demo({
     setColorBlindVariant,
     metrics,
   } = useTheme();
+  const styles = useStyles();
 
   const [notifications, setNotifications] = useState(true);
 
@@ -225,22 +222,31 @@ function Demo({
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
+const useStyles = createThemedStyles((colors, metrics) => ({
+  root: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   content: { padding: 20, paddingBottom: 48 },
-  title: { fontSize: 28, fontWeight: '700' },
-  section: { fontSize: 16, fontWeight: '600', marginBottom: 10 },
+  title: { fontSize: 28, fontWeight: '700' as const, color: colors.text },
+  section: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    marginBottom: 10,
+    color: colors.text,
+  },
   hero: { padding: 20 },
-  heroText: { fontSize: 18, fontWeight: '600' },
-  row: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  rowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  heroText: { fontSize: 18, fontWeight: '600' as const },
+  row: { flexDirection: 'row' as const, gap: 10, flexWrap: 'wrap' as const },
+  rowWrap: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 8 },
   chip: { minWidth: 0, paddingHorizontal: 12 },
   switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
     marginBottom: 12,
   },
-  footer: { textAlign: 'center', marginTop: 8 },
-});
+  footer: {
+    textAlign: 'center' as const,
+    marginTop: 8,
+    color: colors.textMuted,
+  },
+}));

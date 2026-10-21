@@ -197,6 +197,56 @@ const { theme: sys, fromSystem } = await createSystemMaterialYouTheme('#6750A4')
 
 ---
 
+## Themed styles (recommended DX)
+
+Build `StyleSheet`s from theme tokens — they refresh automatically on light/dark switch.
+
+```tsx
+import { createThemedStyles, useThemedStyles, ThemedView } from 'react-native-smart-theme';
+
+// Best: define once outside the component
+const useStyles = createThemedStyles((colors, metrics, { isDark }) => ({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: metrics.spacing.md,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 22,
+    marginBottom: metrics.spacing.sm,
+  },
+  badge: {
+    backgroundColor: isDark ? colors.primaryContainer : colors.primary,
+    borderRadius: metrics.radius.md,
+    padding: metrics.spacing.sm,
+  },
+}));
+
+function Home() {
+  const styles = useStyles();
+  return (
+    <ThemedView style={styles.screen}>
+      {/* ... */}
+    </ThemedView>
+  );
+}
+
+// Or inline (convenient for small screens):
+function Card() {
+  const styles = useThemedStyles((colors, metrics) => ({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: metrics.radius.lg,
+      padding: metrics.spacing.md,
+    },
+  }));
+  return <ThemedView style={styles.card} />;
+}
+```
+
+---
+
 ## Components
 
 `ThemedView` · `ThemedText` · `ThemedButton` · `ThemedCard` · `ThemedInput` · `ThemedSwitch` · `ThemedDivider` · `AdaptiveText` · `SmartText`
