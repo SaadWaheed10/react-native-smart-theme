@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Smart Theme Example",
+    "slug": "react-native-smart-theme-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#6750A4"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.smarttheme.example"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#6750A4"
+      },
+      "package": "com.smarttheme.example"
+    }
+  }
+}

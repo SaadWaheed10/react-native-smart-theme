@@ -1,0 +1,14 @@
+node_modules/
+lib/
+*.log
+.DS_Store
+coverage/
+.expo/
+dist/
+*.tgz
+.idea/
+.vscode/
+*.tsbuildinfo
+example/node_modules/
+example/.expo/
+example/dist/
