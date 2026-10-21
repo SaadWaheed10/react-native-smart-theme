@@ -1,6 +1,6 @@
 {
   "name": "react-native-smart-theme",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Dark/light mode theme engine for React Native & Expo — mode switcher (light/dark/system), one-seed palettes, themed styles/components, image→theme, Material You, optional smart contrast",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
