@@ -2,9 +2,8 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "paths": {
-      "react-native-smart-theme": ["../src/index.ts"]
-    }
+    "module": "esnext",
+    "moduleResolution": "bundler"
   },
   "include": ["**/*.ts", "**/*.tsx"]
 }

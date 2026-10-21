@@ -1,8 +1,8 @@
 # Publishing checklist
 
-1. Update version in root `package.json` (semver).
+1. Bump version in root `package.json` (semver).
 2. Update `CHANGELOG.md`.
-3. Run locally:
+3. Verify locally:
 
 ```bash
 npm test
@@ -32,6 +32,7 @@ git push origin v0.1.0
 
 ## Notes
 
+- Optional peers must stay **optional** (`peerDependenciesMeta`).
+- Core package must run without Reanimated / MMKV / image-colors installed.
 - `prepare` runs `bob build` on install from git.
 - `prepublishOnly` runs build + tests before npm publish.
-- Keep optional peers optional — do not add them as hard dependencies.

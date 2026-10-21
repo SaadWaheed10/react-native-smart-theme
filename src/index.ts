@@ -65,10 +65,28 @@ export {
 } from './hooks/useAnimatedThemeColor';
 export { useImageTheme } from './hooks/useImageTheme';
 export type { UseImageThemeResult } from './hooks/useImageTheme';
+export { useSmartColor } from './hooks/useSmartColor';
+export type { UseSmartColorOptions } from './hooks/useSmartColor';
+
+// Smart adapt (auto contrast — no AI)
+export {
+  scanPaletteContrast,
+  ensureAccessiblePalette,
+  withSmartAdapt,
+  smartForeground,
+  adaptStyleColors,
+  askSmartAdaptDefault,
+} from './smart';
+export type {
+  SmartAdaptOptions,
+  ContrastIssue,
+  ScanPaletteResult,
+} from './smart';
 
 // Components
 export {
   AdaptiveText,
+  SmartText,
   ThemedView,
   ThemedText,
   ThemedButton,
@@ -79,6 +97,7 @@ export {
 } from './components';
 export type {
   AdaptiveTextProps,
+  SmartTextProps,
   ThemedViewProps,
   ThemedTextProps,
   ThemedTextVariant,
@@ -146,4 +165,7 @@ export type {
   ThemeStorage,
   ThemeProviderProps,
   ThemeContextValue,
+  SmartAdaptPolicy,
+  SmartAdaptChoice,
+  ModeChangeOptions,
 } from './types';

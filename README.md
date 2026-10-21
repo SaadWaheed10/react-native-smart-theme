@@ -2,7 +2,11 @@
 
 Advanced dark / light theming for **Expo** and **React Native CLI**.
 
-One-seed palettes · Image → theme · Material You · Adaptive text (WCAG + APCA) · Animated transitions · Accessibility
+One-seed palettes · Image → theme · Material You · Adaptive text (WCAG + APCA) · Optional smart contrast · Accessibility
+
+Works with **any React Native version** (`peerDependency: "*"`). Optional peers are never required to install or start your app.
+
+---
 
 ## Install
 
@@ -12,18 +16,27 @@ npm install react-native-smart-theme
 yarn add react-native-smart-theme
 ```
 
-Optional peers:
+That’s enough for core theming (generator, provider, themed components, contrast utils).
+
+### Optional peers (install only what you use)
+
+| Peer | When you need it |
+|------|------------------|
+| `react-native-reanimated` | `animateTransitions` |
+| `react-native-mmkv` or `@react-native-async-storage/async-storage` | Persist mode across restarts (otherwise in-memory) |
+| `react-native-image-colors` | `createThemeFromImage({ source: { uri } })` |
+| `react-native-material-you-colors` | Real Android 12+ system accent |
 
 ```bash
-npx expo install react-native-reanimated          # animated transitions
-npx expo install react-native-mmkv                 # fast persistence
-# or
-npx expo install @react-native-async-storage/async-storage
-
-npx expo install react-native-image-colors         # image URI → colors
-# Android 12+ system accent (optional):
-yarn add react-native-material-you-colors
+npx expo install react-native-reanimated
+npx expo install react-native-mmkv
+# or: npx expo install @react-native-async-storage/async-storage
+npx expo install react-native-image-colors
 ```
+
+Missing peers **do not crash** the app — features quietly fall back (no animation, memory storage, etc.).
+
+---
 
 ## Quick start
 
@@ -31,10 +44,9 @@ yarn add react-native-material-you-colors
 import {
   ThemeProvider,
   useTheme,
-  AdaptiveText,
+  SmartText,
   createTheme,
   ThemedView,
-  ThemedText,
   ThemedButton,
 } from 'react-native-smart-theme';
 
@@ -42,30 +54,115 @@ const theme = createTheme({ primary: '#6750A4' });
 
 export default function App() {
   return (
-    <ThemeProvider theme={theme} defaultMode="system" persist animateTransitions>
+    <ThemeProvider
+      theme={theme}
+      defaultMode="system"
+      persist
+      smartAdapt="ask" // false (default) | true | 'ask'
+    >
       <Home />
     </ThemeProvider>
   );
 }
 
 function Home() {
-  const { colors, isDark, toggleMode } = useTheme();
+  const { isDark, toggleMode } = useTheme();
 
   return (
     <ThemedView style={{ flex: 1, padding: 24, gap: 12 }}>
-      <ThemedText>Smart Theme</ThemedText>
-      <AdaptiveText backgroundColor={colors.primary}>On brand</AdaptiveText>
-      <ThemedButton title={isDark ? 'Light' : 'Dark'} onPress={toggleMode} />
+      <SmartText>Readable body text</SmartText>
+      {/* Always wrap — never pass toggleMode directly to onPress */}
+      <ThemedButton
+        title={isDark ? 'Light' : 'Dark'}
+        onPress={() => {
+          void toggleMode();
+        }}
+      />
     </ThemedView>
   );
 }
 ```
 
-## API reference
+---
 
-### `createTheme({ primary })`
+## Smart adapt (optional — never forced)
 
-One-seed generator → full light + dark `ColorTokens` (WCAG AA by default).
+Some apps already hand-tune light/dark styles. Others don’t. Smart adapt is **opt-in**.
+
+| `smartAdapt` | Behavior |
+|--------------|----------|
+| `false` (**default**) | Switch theme palette only — your styles stay as authored |
+| `true` | Always repair contrast on theme tokens (text, on-primary, borders, …) |
+| `'ask'` | On each `setMode` / `toggleMode`, ask the user |
+
+**What “Apply overall” does:** repairs **theme color tokens** so text/borders stay WCAG-readable.  
+**It does not** rewrite random hardcoded `#fff` in your own components — use `SmartText` / `colors.*` / `adaptStyleColors` for those.
+
+```tsx
+<ThemeProvider theme={theme} smartAdapt="ask">
+  <App />
+</ThemeProvider>
+
+const { toggleMode, setSmartAdapt, smartAdapt, isHydrated } = useTheme();
+
+void toggleMode();                      // may show dialog
+void toggleMode({ smartAdapt: false }); // theme only, no dialog
+void toggleMode({ smartAdapt: true });  // overall, no dialog
+setSmartAdapt(true);                    // turn overall on without changing mode
+```
+
+Custom dialog:
+
+```tsx
+<ThemeProvider
+  smartAdapt="ask"
+  onSmartAdaptAsk={async () => {
+    // return 'overall' | 'theme-only' | 'cancel'
+    return 'theme-only';
+  }}
+>
+```
+
+`SmartText` / `useSmartColor` always pick a readable foreground for a background — independent of the provider flag (safe helpers, not a global force).
+
+---
+
+## ThemeProvider props
+
+| Prop | Default | Notes |
+|------|---------|--------|
+| `theme` | required | From `createTheme` / image / Material You |
+| `defaultMode` | `'system'` | `'light' \| 'dark' \| 'system'` |
+| `forcedMode` | `null` | Force light/dark until cleared |
+| `persist` | `true` | Save mode (needs MMKV/AsyncStorage for restarts) |
+| `storageKey` | `@rn-smart-theme/mode` | Persistence key |
+| `storage` | auto | Custom `{ getItem, setItem }` |
+| `highContrast` | `false` | Stronger text/borders |
+| `colorBlindVariant` | `'none'` | `protanopia` / `deuteranopia` / `tritanopia` |
+| `animateTransitions` | `false` | Needs Reanimated; safe no-op if missing |
+| `transitionDuration` | `300` | ms |
+| `respectReduceMotion` | `true` | Skip animations when OS asks |
+| `smartAdapt` | `false` | `false` \| `true` \| `'ask'` |
+| `smartAdaptDefault` | `false` | Initial overall flag when using `'ask'` |
+| `persistSmartAdapt` | `true` | Remember overall vs theme-only |
+| `smartAdaptMinContrast` | `4.5` | WCAG ratio when overall is on |
+| `onSmartAdaptAsk` | system Alert | Custom prompt |
+
+### `useTheme()` returns
+
+`colors`, `theme`, `mode`, `resolvedMode`, `isDark`, `setMode`, `forceMode`, `toggleMode`, `highContrast`, `setHighContrast`, `colorBlindVariant`, `setColorBlindVariant`, `reduceMotion`, `animateTransitions`, `transitionDuration`, `metrics`, `smartAdapt`, `smartAdaptPolicy`, `setSmartAdapt`, `isHydrated`, `exportTheme`, `importTheme`.
+
+**Tip:** wait for `isHydrated` before treating `mode` as final if `persist` is on (avoids a brief flash of `defaultMode`).
+
+**Tip:** always call `onPress={() => { void toggleMode(); }}` — do not pass `toggleMode` bare to `onPress`.
+
+Nested `<ThemeProvider>` works for per-screen themes. Prefer different `storageKey`s if both persist.
+
+---
+
+## Generators
+
+### One-seed
 
 ```ts
 const theme = createTheme({
@@ -76,124 +173,88 @@ const theme = createTheme({
 });
 ```
 
-### `ThemeProvider` / `useTheme`
-
-| Prop | Default | Notes |
-|------|---------|--------|
-| `theme` | required | From `createTheme` / image / Material You |
-| `defaultMode` | `'system'` | `'light' \| 'dark' \| 'system'` |
-| `forcedMode` | `null` | Force light/dark until cleared |
-| `persist` | `true` | Save mode preference |
-| `highContrast` | `false` | Boost text/borders |
-| `colorBlindVariant` | `'none'` | `protanopia` / `deuteranopia` / `tritanopia` |
-| `animateTransitions` | `false` | Needs Reanimated |
-| `respectReduceMotion` | `true` | Skip animations when OS asks |
-
-`useTheme()` returns `colors`, `mode`, `resolvedMode`, `isDark`, `setMode`, `forceMode`, `toggleMode`, a11y setters, `exportTheme` / `importTheme`, metrics.
-
-Nested providers work — wrap a screen to force a local theme.
-
-### Adaptive text & contrast
-
-```ts
-import {
-  AdaptiveText,
-  useAdaptiveColor,
-  getContrastRatio,
-  getApcaContrast,
-  contrastWarning,
-} from 'react-native-smart-theme';
-
-<AdaptiveText backgroundColor="#6750A4" algorithm="APCA">Label</AdaptiveText>
-
-const { color, passes } = useAdaptiveColor(bg, { algorithm: 'WCAG' });
-```
-
 ### Image → theme
 
 ```ts
-import {
-  createThemeFromColors,
-  createThemeFromPixels,
-  createThemeFromImage,
-  useImageTheme,
-  extractDominantColors,
-} from 'react-native-smart-theme';
-
-// Known palette
+// 1) Known colors (safest, no native deps)
 const { theme } = createThemeFromColors({ colors: ['#6750A4', '#E8DEF8'] });
 
-// RGBA buffer (pure JS median-cut)
+// 2) RGBA pixels (pure JS)
 const { theme: t2 } = createThemeFromPixels({ pixels: { data, width, height } });
 
-// URI / asset (optional peer: react-native-image-colors)
-const { theme: t3 } = await createThemeFromImage({ source: { uri } });
-
-// Hook
+// 3) URI — needs react-native-image-colors; prefer the hook (handles errors)
 const { theme, loading, error } = useImageTheme({ source: { uri } });
 ```
+
+`createThemeFromImage` throws a clear error if it cannot extract colors — wrap in try/catch or use `useImageTheme`.
 
 ### Material You
 
 ```ts
-import {
-  createMaterialYouTheme,
-  createSystemMaterialYouTheme,
-} from 'react-native-smart-theme';
-
-const theme = createMaterialYouTheme({ primary: '#6750A4' });
-
+const theme = createMaterialYouTheme({ primary: '#6750A4' }); // pure JS, all platforms
 const { theme: sys, fromSystem } = await createSystemMaterialYouTheme('#6750A4');
 ```
 
-### Themed primitives
+---
 
-`ThemedView` · `ThemedText` · `ThemedButton` · `ThemedCard` · `ThemedInput` · `ThemedSwitch` · `ThemedDivider` · `AdaptiveText`
+## Components
 
-### Theme JSON
+`ThemedView` · `ThemedText` · `ThemedButton` · `ThemedCard` · `ThemedInput` · `ThemedSwitch` · `ThemedDivider` · `AdaptiveText` · `SmartText`
+
+---
+
+## Contrast helpers
+
+```ts
+import {
+  getContrastRatio,
+  getAdaptiveColor,
+  contrastWarning,
+  ensureAccessiblePalette,
+  adaptStyleColors,
+} from 'react-native-smart-theme';
+```
+
+---
+
+## Theme JSON
 
 ```ts
 import { exportTheme, importTheme } from 'react-native-smart-theme';
 
 const json = exportTheme(theme);
-const restored = importTheme(json);
+const restored = importTheme(json); // module helper — throws if invalid
+
+// Inside provider — never throws; invalid payloads are ignored in production
+const { importTheme: applyTheme, exportTheme: dump } = useTheme();
 ```
+
+---
 
 ## Example app
 
 ```bash
-# from repo root
 npm install
 cd example && npm install
 npm start
 ```
 
-Demo covers mode toggle, seed switching, classic / Material You / image generators, high contrast, and color-blind variants.
+Demo: mode toggle with **ask** dialog, seed colors, classic / Material You / image generators, high contrast, color-blind variants.
 
-## Feature checklist
+---
 
-| Feature | Status |
-|--------|--------|
-| One-seed `createTheme` (WCAG AA) | ✅ |
-| Light / Dark / System + persistence | ✅ |
-| WCAG + APCA, AdaptiveText | ✅ |
-| High contrast + color-blind + Reduce Motion | ✅ |
-| Animated transitions | ✅ |
-| Themed primitives | ✅ |
-| Theme export / import | ✅ |
-| Image → theme | ✅ |
-| Material You tonal + Android dynamic seed | ✅ |
-| Expo example | ✅ |
-| Unit tests | ✅ |
+## Troubleshooting
 
-## Publish
+| Symptom | Fix |
+|---------|-----|
+| Mode resets on reload | Install MMKV or AsyncStorage; `persist` alone uses memory fallback |
+| No animation on toggle | Install Reanimated + its Babel plugin; or leave `animateTransitions={false}` |
+| Image theme fails | Install `react-native-image-colors`, or pass a hex array / `getPixels` |
+| Dialog every toggle | Set `smartAdapt={false}` or pass `toggleMode({ smartAdapt: false })` |
+| Text still wrong on custom views | Use `SmartText` / `colors.text` — overall adapt only fixes theme tokens |
 
-```bash
-npm test
-npm run build
-npm publish --access public
-```
+---
 
 ## License
 
-MIT
+MIT · [GitHub](https://github.com/SaadWaheed10/react-native-smart-theme)

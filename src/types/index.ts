@@ -11,4 +11,7 @@ export type {
   ThemeStorage,
   ThemeProviderProps,
   ThemeContextValue,
+  SmartAdaptPolicy,
+  SmartAdaptChoice,
+  ModeChangeOptions,
 } from './theme';

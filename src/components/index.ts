@@ -21,3 +21,6 @@ export type { ThemedSwitchProps } from './ThemedSwitch';
 
 export { ThemedDivider } from './ThemedDivider';
 export type { ThemedDividerProps } from './ThemedDivider';
+
+export { SmartText } from './SmartText';
+export type { SmartTextProps } from './SmartText';

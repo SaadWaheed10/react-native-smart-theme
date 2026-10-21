@@ -155,6 +155,27 @@ export interface ThemeStorage {
   removeItem?: (key: string) => void | Promise<void>;
 }
 
+/**
+ * How smart contrast behaves:
+ * - `false` — theme palette only (default; respects hand-tuned dark/light)
+ * - `true` — always repair contrast overall
+ * - `'ask'` — on each mode switch, ask: overall vs theme-only
+ */
+export type SmartAdaptPolicy = boolean | 'ask';
+
+/** User answer when smartAdapt policy is `'ask'` */
+export type SmartAdaptChoice = 'overall' | 'theme-only' | 'cancel';
+
+/** Options for `setMode` / `toggleMode` */
+export interface ModeChangeOptions {
+  /**
+   * Override smart-adapt for this change only.
+   * - `true` / `false` — apply or skip without asking
+   * - `'ask'` — prompt even if provider policy is not `'ask'`
+   */
+  smartAdapt?: boolean | 'ask';
+}
+
 /** ThemeProvider props */
 export interface ThemeProviderProps {
   /** Theme from `createTheme` (or custom) */
@@ -179,6 +200,29 @@ export interface ThemeProviderProps {
   transitionDuration?: number;
   /** Respect system Reduce Motion */
   respectReduceMotion?: boolean;
+  /**
+   * Smart contrast policy (not forced by default).
+   * @default false
+   */
+  smartAdapt?: SmartAdaptPolicy;
+  /**
+   * Initial overall smart-adapt flag when policy is `'ask'`
+   * (before the user answers, or after a previous choice was persisted).
+   * @default false
+   */
+  smartAdaptDefault?: boolean;
+  /** Persist the user's overall vs theme-only choice @default true */
+  persistSmartAdapt?: boolean;
+  /** Minimum WCAG ratio when overall smart-adapt is on @default 4.5 */
+  smartAdaptMinContrast?: number;
+  /**
+   * Custom prompt when policy / call uses `'ask'`.
+   * Return `'overall' | 'theme-only' | 'cancel'`.
+   * Defaults to a system Alert.
+   */
+  onSmartAdaptAsk?: () =>
+    | SmartAdaptChoice
+    | Promise<SmartAdaptChoice>;
   children: React.ReactNode;
 }
 
@@ -194,12 +238,15 @@ export interface ThemeContextValue {
   resolvedMode: ResolvedMode;
   /** Whether appearance is dark */
   isDark: boolean;
-  /** Set light / dark / system */
-  setMode: (mode: ThemeMode) => void;
+  /** Set light / dark / system (may prompt when smartAdapt is `'ask'`) */
+  setMode: (
+    mode: ThemeMode,
+    options?: ModeChangeOptions
+  ) => void | Promise<void>;
   /** Force light or dark until cleared */
   forceMode: (mode: ResolvedMode | null) => void;
-  /** Toggle between light and dark (clears system) */
-  toggleMode: () => void;
+  /** Toggle between light and dark (may prompt when smartAdapt is `'ask'`) */
+  toggleMode: (options?: ModeChangeOptions) => void | Promise<void>;
   /** High contrast enabled */
   highContrast: boolean;
   setHighContrast: (enabled: boolean) => void;
@@ -214,8 +261,25 @@ export interface ThemeContextValue {
   transitionDuration: number;
   /** Metrics (spacing, radius) */
   metrics: ThemeMetrics;
+  /**
+   * Whether overall smart contrast is currently applied
+   * (`true` = repaired palette, `false` = raw theme only)
+   */
+  smartAdapt: boolean;
+  /** Provider policy: false | true | 'ask' */
+  smartAdaptPolicy: SmartAdaptPolicy;
+  /** Turn overall smart-adapt on/off without changing mode */
+  setSmartAdapt: (enabled: boolean) => void;
+  /**
+   * `true` after persisted mode (and smartAdapt choice) finished loading.
+   * When `persist={false}`, this is `true` immediately.
+   */
+  isHydrated: boolean;
   /** Export theme as JSON string */
   exportTheme: () => string;
-  /** Replace theme at runtime */
+  /**
+   * Replace theme at runtime.
+   * Invalid JSON / payload is ignored (warns in __DEV__) — never throws.
+   */
   importTheme: (jsonOrTheme: string | Theme) => void;
 }

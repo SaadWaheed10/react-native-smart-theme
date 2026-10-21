@@ -1,4 +1,5 @@
 import type { ThemeStorage } from '../types/theme';
+import { optionalRequire } from '../utils/optionalRequire';
 
 const memory = new Map<string, string>();
 
@@ -14,38 +15,50 @@ export const memoryStorage: ThemeStorage = {
 };
 
 /**
- * Try to use react-native-mmkv, then AsyncStorage, then memory.
- * Pure optional requires — never crashes if natives are missing.
+ * Try react-native-mmkv → AsyncStorage → memory.
+ * Never throws if optional peers are missing.
  */
 export function createDefaultStorage(): ThemeStorage {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { MMKV } = require('react-native-mmkv');
-    const mmkv = new MMKV({ id: 'react-native-smart-theme' });
-    return {
-      getItem: (key) => mmkv.getString(key) ?? null,
-      setItem: (key, value) => {
-        mmkv.set(key, value);
-      },
-      removeItem: (key) => {
-        mmkv.delete(key);
-      },
+  const mmkvMod = optionalRequire<{
+    MMKV: new (opts: { id: string }) => {
+      getString: (k: string) => string | undefined;
+      set: (k: string, v: string) => void;
+      delete: (k: string) => void;
     };
-  } catch {
-    // MMKV not installed
+  }>('react-native-mmkv');
+
+  if (mmkvMod?.MMKV) {
+    try {
+      const mmkv = new mmkvMod.MMKV({ id: 'react-native-smart-theme' });
+      return {
+        getItem: (key) => mmkv.getString(key) ?? null,
+        setItem: (key, value) => {
+          mmkv.set(key, value);
+        },
+        removeItem: (key) => {
+          mmkv.delete(key);
+        },
+      };
+    } catch {
+      // MMKV native module not linked
+    }
   }
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const AsyncStorage =
-      require('@react-native-async-storage/async-storage').default;
+  const asyncMod = optionalRequire<{
+    default: {
+      getItem: (k: string) => Promise<string | null>;
+      setItem: (k: string, v: string) => Promise<void>;
+      removeItem: (k: string) => Promise<void>;
+    };
+  }>('@react-native-async-storage/async-storage');
+
+  const AsyncStorage = asyncMod?.default;
+  if (AsyncStorage?.getItem) {
     return {
       getItem: (key) => AsyncStorage.getItem(key),
       setItem: (key, value) => AsyncStorage.setItem(key, value),
       removeItem: (key) => AsyncStorage.removeItem(key),
     };
-  } catch {
-    // AsyncStorage not installed
   }
 
   return memoryStorage;

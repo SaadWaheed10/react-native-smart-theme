@@ -1,5 +1,6 @@
 import type { CreateThemeOptions, HexColor, Theme } from '../types/theme';
 import { normalizeHex, perceivedBrightness, rotateHue } from '../utils/color';
+import { optionalRequire } from '../utils/optionalRequire';
 import { createTheme } from './createTheme';
 import {
   extractDominantColors,
@@ -158,8 +159,11 @@ async function extractViaImageColors(
   if (Array.isArray(source)) return source.map((c) => normalizeHex(c));
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ImageColors = require('react-native-image-colors');
+    const ImageColors = optionalRequire<{
+      getColors?: Function;
+      default?: { getColors?: Function };
+    }>('react-native-image-colors');
+    if (!ImageColors) return null;
     const getColors = ImageColors.getColors ?? ImageColors.default?.getColors;
     if (typeof getColors !== 'function') return null;
 

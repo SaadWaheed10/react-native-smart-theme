@@ -8,6 +8,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import {
   AdaptiveText,
+  SmartText,
   ThemeProvider,
   ThemedButton,
   ThemedCard,
@@ -50,8 +51,8 @@ export default function App() {
       theme={theme}
       defaultMode="system"
       persist
-      animateTransitions
-      transitionDuration={280}
+      // Ask on each toggle: apply overall contrast OR theme palette only
+      smartAdapt="ask"
     >
       <Demo
         seed={seed}
@@ -127,7 +128,12 @@ function Demo({
               </AdaptiveText>
             </View>
             <ThemedDivider style={{ marginVertical: 12 }} />
-            <ThemedText variant="muted">
+            <SmartText>
+              Tap Toggle — you will be asked whether to apply smart contrast
+              overall, or only switch the theme (for apps that already
+              hand-tuned light/dark).
+            </SmartText>
+            <ThemedText variant="muted" style={{ marginTop: 8 }}>
               Surface / border / text tokens follow the active mode and a11y
               settings automatically.
             </ThemedText>
@@ -136,11 +142,18 @@ function Demo({
           <ThemedCard>
             <ThemedText style={styles.section}>Mode</ThemedText>
             <View style={styles.row}>
-              <ThemedButton title="Toggle" onPress={toggleMode} />
+              <ThemedButton
+                title="Toggle"
+                onPress={() => {
+                  void toggleMode();
+                }}
+              />
               <ThemedButton
                 title="System"
                 variant="outline"
-                onPress={() => setMode('system')}
+                onPress={() => {
+                  void setMode('system');
+                }}
               />
             </View>
           </ThemedCard>

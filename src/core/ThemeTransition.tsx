@@ -1,29 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, type ViewProps } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
+import { optionalRequire } from '../utils/optionalRequire';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type AnyReanimated = {
-  default: {
-    View: React.ComponentType<any>;
-  };
+  default?: { View?: React.ComponentType<any> };
+  View?: React.ComponentType<any>;
   useSharedValue: (value: number) => { value: number };
   useAnimatedStyle: (fn: () => Record<string, unknown>) => object;
   withTiming: (
     to: number,
     config?: { duration?: number; easing?: unknown }
   ) => number;
-  Easing: { out: (fn: unknown) => unknown; cubic: unknown };
+  Easing?: { out: (fn: unknown) => unknown; cubic: unknown };
 };
 
-let Reanimated: AnyReanimated | null = null;
-try {
-  // Optional peer — package still works without it
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  Reanimated = require('react-native-reanimated');
-} catch {
-  Reanimated = null;
-}
+const Reanimated = optionalRequire<AnyReanimated>('react-native-reanimated');
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export interface ThemeTransitionProps extends ViewProps {
@@ -31,9 +24,8 @@ export interface ThemeTransitionProps extends ViewProps {
 }
 
 /**
- * Soft cross-fade when the resolved light/dark mode changes.
- * No-ops (plain View) when Reanimated is missing, animations are off,
- * or the user has Reduce Motion enabled.
+ * Soft cross-fade when light/dark changes.
+ * Falls back to a plain View when Reanimated is not installed.
  */
 export function ThemeTransition({
   children,
@@ -44,7 +36,9 @@ export function ThemeTransition({
     useTheme();
 
   const canAnimate =
-    Boolean(Reanimated) && animateTransitions && !reduceMotion;
+    Boolean(Reanimated?.useSharedValue) &&
+    animateTransitions &&
+    !reduceMotion;
 
   if (!canAnimate || !Reanimated) {
     return (
@@ -56,6 +50,7 @@ export function ThemeTransition({
 
   return (
     <AnimatedFade
+      reanimated={Reanimated}
       resolvedMode={resolvedMode}
       duration={transitionDuration}
       style={style}
@@ -68,16 +63,16 @@ export function ThemeTransition({
 
 function AnimatedFade({
   children,
+  reanimated: R,
   resolvedMode,
   duration,
   style,
   ...rest
 }: ThemeTransitionProps & {
+  reanimated: AnyReanimated;
   resolvedMode: string;
   duration: number;
 }) {
-  const R = Reanimated!;
-  const AnimatedView = R.default.View;
   const opacity = R.useSharedValue(1);
   const prevMode = useRef(resolvedMode);
 
@@ -85,16 +80,22 @@ function AnimatedFade({
     if (prevMode.current === resolvedMode) return;
     prevMode.current = resolvedMode;
 
-    opacity.value = 0.72;
-    opacity.value = R.withTiming(1, {
-      duration,
-      easing: R.Easing.out(R.Easing.cubic),
-    });
+    try {
+      opacity.value = 0.72;
+      opacity.value = R.withTiming(1, {
+        duration,
+        easing: R.Easing?.out?.(R.Easing.cubic),
+      });
+    } catch {
+      opacity.value = 1;
+    }
   }, [resolvedMode, duration, opacity, R]);
 
   const animatedStyle = R.useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
+
+  const AnimatedView = R.default?.View ?? R.View ?? View;
 
   return (
     <AnimatedView style={[styles.fill, style, animatedStyle]} {...rest}>

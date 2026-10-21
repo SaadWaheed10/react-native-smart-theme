@@ -13,6 +13,7 @@ import {
   withAlpha,
 } from '../utils/color';
 import { ensureContrast, getAdaptiveColor } from '../utils/contrast';
+import { optionalRequire } from '../utils/optionalRequire';
 import { createTheme } from './createTheme';
 
 const DEFAULT_METRICS: ThemeMetrics = {
@@ -196,12 +197,15 @@ export async function getAndroidDynamicSeed(): Promise<HexColor | null> {
     if (Platform.OS !== 'android') return null;
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const mod = require('react-native-material-you-colors');
+      const mod = optionalRequire<{
+        getMaterialYouColors?: Function;
+        getColors?: Function;
+        default?: { getMaterialYouColors?: Function; getColors?: Function };
+      }>('react-native-material-you-colors');
       const getColors =
-        mod.getMaterialYouColors ??
-        mod.default?.getMaterialYouColors ??
-        mod.getColors;
+        mod?.getMaterialYouColors ??
+        mod?.default?.getMaterialYouColors ??
+        mod?.getColors;
       if (typeof getColors === 'function') {
         const result = await getColors();
         const seed =
