@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+} from 'react-native-safe-area-context';
 import {
   AdaptiveText,
   SmartText,
@@ -43,20 +47,22 @@ export default function App() {
   const theme = useMemo(() => buildTheme(seed, engine), [seed, engine]);
 
   return (
-    <ThemeProvider
-      theme={theme}
-      defaultMode="system"
-      persist
-      // Ask on each toggle: apply overall contrast OR theme palette only
-      smartAdapt="ask"
-    >
-      <Demo
-        seed={seed}
-        onSeed={setSeed}
-        engine={engine}
-        onEngine={setEngine}
-      />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider
+        theme={theme}
+        defaultMode="system"
+        persist
+        // Ask on each toggle: apply overall contrast OR theme palette only
+        smartAdapt="ask"
+      >
+        <Demo
+          seed={seed}
+          onSeed={setSeed}
+          engine={engine}
+          onEngine={setEngine}
+        />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -100,7 +106,7 @@ function Demo({
   return (
     <ThemedView style={styles.root}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <SafeAreaView style={styles.flex}>
+      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
         <ScrollView contentContainerStyle={[styles.content, { gap: metrics.spacing.md }]}>
           <ThemedText style={styles.title}>Smart Theme</ThemedText>
           <ThemedText variant="secondary">
